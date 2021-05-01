@@ -1,0 +1,44 @@
+---
+title: "CF fitting"
+output: html_notebook
+---
+
+```{r}
+library(grf)
+```
+
+
+```{r}
+X <- read.csv("C:/_Dissertation/Datasets/X_nt_normalised.csv")
+X <- X[,2:46]
+X <- data.matrix(X)
+num_knobs <- 9
+num_datasets <- 10
+ate_hats <- array(rep(NaN, num_knobs*num_datasets), c(num_knobs, num_datasets))
+ate_sigma <- array(rep(NaN, num_knobs*num_datasets), c(num_knobs, num_datasets))
+```
+
+```{r}
+setwd("C:/_Dissertation/Datasets")
+start_time <- Sys.time()
+for (knob in 0:(num_knobs-1)){
+    for (dataset in 0:(num_datasets-1)){
+        name <- paste("knob_", as.character(knob), "/dataset_", as.character(dataset), ".csv", sep="")
+        df <- read.csv(name)
+        y <- unlist(df["y"])
+        D <- unlist(df["D"])
+        print(paste("fitting", name))
+        forest <- causal_forest(X, y, D, num.threads=4, seed=0)
+        tauhat <- predict(forest, X, estimate.variance=TRUE)
+        write.csv(data.frame(tauhat), file=paste("results_knob_", as.character(knob), "_dataset_", as.character(dataset), ".csv", sep=""))
+        atehat <- average_treatment_effect(forest, target.sample="all")
+        ate_hats[knob+1, dataset+1] <- atehat["estimate"]
+        ate_sigma[knob+1, dataset+1] <- atehat["std.err"]
+    }
+}
+write.csv(ate_hats, file="ate_hats.csv")
+write.csv(ate_sigma, file="ate_sigma.csv")
+end_time <- Sys.time()
+end_time - start_time
+```
+

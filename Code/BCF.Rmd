@@ -1,0 +1,45 @@
+---
+title: "BCF fitting"
+output: html_notebook
+---
+```{r}
+library(bcf)
+X <- read.csv("C:/_Dissertation/Datasets/X_nt_normalised.csv")
+X <- X[,2:46]
+X <- data.matrix(X)
+```
+
+```{r}
+setwd("C:/_Dissertation/Datasets")
+start_time <- Sys.time()
+for (knob in 0:8){
+  for (dataset in 0:9){
+    name <- paste("knob_", as.character(knob), "/dataset_", as.character(dataset), ".csv", sep="")
+    df <- read.csv(name)
+    y <- unlist(df["y"])
+    D <- unlist(df["D"])
+    print(paste("fitting", name))
+    pihat <- unlist(read.csv(paste("C:/_Dissertation/Results/AML D preds/results_", as.character(knob), as.character(dataset), ".csv", sep=""))["X1"])
+    estimator <- bcf(y=y,
+                     z=D,
+                     x_control=X,
+                     x_moderate=X,
+                     pihat=pihat,
+                     nburn=200,
+                     nsim=200,
+                     ntree_control=200,
+                     ntree_moderate=100,
+                     n_chains=3,
+                     random_seed=0,
+                     n_cores=3)
+    tau_ests <- data.frame(Mean  = colMeans(estimator$tau),
+                       Low95 = apply(estimator$tau, 2, function(x) quantile(x, 0.025)),
+                       Up95  = apply(estimator$tau, 2, function(x) quantile(x, 0.975)))
+    summary(estimator)
+    write.csv(data.frame(tau_ests), file=paste("knob_", as.character(knob), "_dataset_", as.character(dataset), ".csv", sep=""))
+  }
+}
+end_time <- Sys.time()
+end_time - start_time
+```
+
