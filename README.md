@@ -3,6 +3,7 @@
 Content:
 
 - 3190F.pdf: submitted write-up
+- Dissertation_draft_4.pdf: a more complete version which had to be cut to meet the word limit. The used software package versions are documented on the last page with academic references given in the Bibliography.
 - ATE results.csv: granular results for ATE (Table 2)
 - CATE results.csv: granular results for CATE (Table4)
 - Variable importances.csv: OLS, Permutation Importance and SHAP for real data (Section 6.2)
